@@ -1,0 +1,435 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Gothic:wght@400;700;800&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0;}
+  .root{font-family:'Nanum Gothic',sans-serif;background:#f0fdf4;position:relative;overflow:hidden;min-height:600px;}
+  .hex-bg{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+  .header{position:relative;z-index:2;background:linear-gradient(90deg,#1b5e20,#43a047);padding:10px 14px 8px;display:flex;align-items:center;gap:10px;box-shadow:0 3px 10px rgba(0,0,0,0.18);}
+  .frog-svg{width:44px;height:44px;flex-shrink:0;}
+  .title-wrap{flex:1;}
+  .title{font-family:'Jua',sans-serif;font-size:17px;color:#fff;text-shadow:1px 2px 4px rgba(0,0,0,0.3);}
+  .subtitle{font-size:10px;color:#a5d6a7;font-weight:700;margin-top:1px;}
+  .header-right{display:flex;flex-direction:column;align-items:center;gap:2px;}
+  .lv-badge{font-family:'Jua',sans-serif;font-size:12px;background:rgba(255,255,255,0.2);border-radius:10px;padding:2px 10px;color:#fff;}
+  .timer-row{display:flex;align-items:baseline;gap:4px;}
+  .timer-num{font-family:'Jua',sans-serif;font-size:28px;color:#fff;line-height:1;transition:color 0.3s;}
+  .timer-num.warn{color:#ff5252;animation:pulse 0.5s infinite alternate;}
+  @keyframes pulse{from{transform:scale(1)}to{transform:scale(1.1)}}
+  .timer-label{font-size:10px;color:#a5d6a7;font-weight:700;}
+
+  .status-bar{position:relative;z-index:2;background:rgba(255,255,255,0.8);border-bottom:1px solid #c8e6c9;padding:6px 14px;display:flex;align-items:center;gap:8px;}
+  .lv-steps{display:flex;gap:5px;flex:1;}
+  .lv-step{width:36px;height:36px;border-radius:50%;border:2.5px solid #ccc;display:flex;align-items:center;justify-content:center;font-family:'Jua',sans-serif;font-size:13px;color:#aaa;transition:all 0.3s;position:relative;background:#fff;}
+  .lv-step.done{background:#43a047;border-color:#43a047;color:#fff;}
+  .lv-step.done::after{content:'✓';position:absolute;font-size:10px;}
+  .lv-step.done span{display:none;}
+  .lv-step.current{background:#fff;border-color:#2e7d32;color:#2e7d32;box-shadow:0 0 0 3px rgba(67,160,71,0.25);}
+  .lv-step.locked{opacity:0.45;}
+  .score-box{background:#fff;border:1.5px solid #a5d6a7;border-radius:16px;padding:4px 12px;font-family:'Jua',sans-serif;font-size:14px;color:#2e7d32;white-space:nowrap;}
+  .streak-box{background:#fff8e1;border:1.5px solid #ffe082;border-radius:16px;padding:4px 10px;font-size:12px;color:#f57f17;font-weight:700;white-space:nowrap;}
+
+  .prompt-bar{position:relative;z-index:2;background:#fff;border-top:2px solid #a5d6a7;border-bottom:2px solid #a5d6a7;padding:10px 14px;display:flex;align-items:center;gap:10px;min-height:56px;}
+  .prompt-tag{font-size:11px;color:#999;font-weight:700;white-space:nowrap;}
+  .prompt-word{font-family:'Jua',sans-serif;font-size:28px;color:#1b5e20;flex:1;text-align:center;}
+  .prompt-hint{font-size:11px;color:#aaa;white-space:nowrap;}
+  @keyframes fadeInW{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+  .card-grid{position:relative;z-index:2;display:grid;gap:10px;padding:10px 12px 14px;}
+  .card{background:#fff;border-radius:14px;border:3px solid #ccc;padding:10px 6px 12px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.08);position:relative;min-height:105px;user-select:none;}
+  .card:hover{transform:translateY(-3px) scale(1.04);box-shadow:0 6px 18px rgba(0,0,0,0.15);}
+  .card.correct{animation:pop 0.35s;background:#e8f5e9;border-color:#43a047;}
+  .card.wrong{animation:shake 0.35s;background:#ffebee;border-color:#e53935;}
+  @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.15)}100%{transform:scale(1)}}
+  @keyframes shake{0%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}100%{transform:translateX(0)}}
+  .card-icon{font-size:26px;line-height:1;}
+  .card-kr{font-family:'Jua',sans-serif;font-size:16px;color:#222;text-align:center;}
+  .card-dot{position:absolute;top:6px;right:7px;width:10px;height:10px;border-radius:50%;background:#eee;}
+  .card.correct .card-dot{background:#43a047;}
+  .card.wrong .card-dot{background:#e53935;}
+
+  .overlay{position:absolute;top:0;left:0;right:0;bottom:0;z-index:10;background:rgba(255,255,255,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;}
+  .ov-title{font-family:'Jua',sans-serif;font-size:26px;color:#2e7d32;text-align:center;}
+  .ov-sub{font-size:14px;color:#666;text-align:center;}
+  .ov-score{font-size:20px;color:#333;font-weight:700;}
+  .stars{font-size:28px;letter-spacing:4px;}
+  .btn{font-family:'Jua',sans-serif;font-size:15px;border:none;border-radius:20px;padding:8px 20px;cursor:pointer;transition:transform 0.1s;box-shadow:0 2px 8px rgba(0,0,0,0.12);}
+  .btn:active{transform:scale(0.96);}
+  .btn-start{background:#43a047;color:#fff;}
+  .btn-reset{background:#fff;color:#555;border:1px solid #ccc;}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+
+  /* Start screen level selector */
+  .lv-select-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:100%;}
+  .lv-sel-btn{font-family:'Jua',sans-serif;font-size:13px;border:2.5px solid #a5d6a7;border-radius:14px;padding:10px 4px;cursor:pointer;background:#fff;color:#2e7d32;text-align:center;transition:all 0.15s;line-height:1.4;}
+  .lv-sel-btn:hover{background:#e8f5e9;border-color:#43a047;}
+  .lv-sel-btn.selected{background:#2e7d32;color:#fff;border-color:#2e7d32;}
+  .lv-sel-btn .lv-stars{font-size:11px;}
+  .lv-sel-btn .lv-time{font-size:10px;color:#888;margin-top:2px;}
+  .lv-sel-btn.selected .lv-time{color:#a5d6a7;}
+
+  /* Level up animation */
+  .lvup-flash{position:absolute;top:0;left:0;right:0;bottom:0;z-index:9;background:rgba(67,160,71,0.18);pointer-events:none;animation:lvflash 0.6s forwards;}
+  @keyframes lvflash{0%{opacity:1}100%{opacity:0}}
+</style>
+
+<div class="root" id="root">
+  <svg class="hex-bg" viewBox="0 0 680 600" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <pattern id="hp" x="0" y="0" width="58" height="50" patternUnits="userSpaceOnUse">
+        <polygon points="29,2 54,15 54,42 29,55 4,42 4,15" fill="none" stroke="rgba(80,160,80,0.1)" stroke-width="1.2"/>
+        <polygon points="58,27 83,40 83,67 58,80 33,67 33,40" fill="none" stroke="rgba(80,160,80,0.1)" stroke-width="1.2"/>
+      </pattern>
+    </defs>
+    <rect width="680" height="600" fill="url(#hp)"/>
+  </svg>
+
+  <div class="header">
+    <svg class="frog-svg" viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="27,3 51,16 51,42 27,55 3,42 3,16" fill="#69f0ae" stroke="#43a047" stroke-width="2"/>
+      <circle cx="18" cy="20" r="6" fill="#fff" stroke="#43a047" stroke-width="1.5"/>
+      <circle cx="36" cy="20" r="6" fill="#fff" stroke="#43a047" stroke-width="1.5"/>
+      <circle cx="18" cy="21" r="3" fill="#1b5e20"/>
+      <circle cx="36" cy="21" r="3" fill="#1b5e20"/>
+      <path d="M18 34 Q27 42 36 34" stroke="#43a047" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="12" cy="30" rx="5" ry="3.5" fill="#a5d6a7" opacity="0.7"/>
+      <ellipse cx="42" cy="30" rx="5" ry="3.5" fill="#a5d6a7" opacity="0.7"/>
+    </svg>
+    <div class="title-wrap">
+      <div class="title">청개구리 반대말 스피드 게임</div>
+      <div class="subtitle">제시어의 반대말 카드를 눌러라!</div>
+    </div>
+    <div class="header-right">
+      <div class="lv-badge" id="lvBadge">1단계 ⭐</div>
+      <div class="timer-row">
+        <div class="timer-num" id="timerDisp">60</div>
+        <div class="timer-label">초</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <div class="lv-steps" id="lvSteps"></div>
+    <div class="streak-box">🔥 <span id="streakDisp">0</span></div>
+    <div class="score-box">점수: <span id="scoreDisp">0</span></div>
+  </div>
+
+  <div class="prompt-bar">
+    <span class="prompt-tag">제시어 ▶</span>
+    <div class="prompt-word" id="promptWord">시작 버튼을 눌러요!</div>
+    <span class="prompt-hint" id="promptHint"></span>
+  </div>
+
+  <div class="card-grid" id="cardGrid"></div>
+
+  <div class="overlay" id="overlay">
+    <div id="overlayInner"></div>
+  </div>
+</div>
+
+<script>
+const LEVELS = {
+  1:{label:"1단계",stars:"⭐",time:60,cards:4,target:5,pairs:[
+    {q:"크다",a:"작다",qi:"🐘",ai:"🐭"},{q:"빠르다",a:"느리다",qi:"🐆",ai:"🐢"},
+    {q:"덥다",a:"춥다",qi:"🥵",ai:"🥶"},{q:"낮",a:"밤",qi:"☀️",ai:"🌙"},
+    {q:"위",a:"아래",qi:"⬆️",ai:"⬇️"},{q:"켜다",a:"끄다",qi:"💡",ai:"🔌"},
+    {q:"여름",a:"겨울",qi:"🌞",ai:"❄️"},{q:"불",a:"물",qi:"🔥",ai:"💧"},
+  ]},
+  2:{label:"2단계",stars:"⭐⭐",time:50,cards:4,target:6,pairs:[
+    {q:"행복",a:"슬픔",qi:"😊",ai:"😢"},{q:"앞",a:"뒤",qi:"➡️",ai:"⬅️"},
+    {q:"많다",a:"적다",qi:"🍎",ai:"🫙"},{q:"열다",a:"닫다",qi:"🚪",ai:"🔒"},
+    {q:"가볍다",a:"무겁다",qi:"🪶",ai:"🪨"},{q:"길다",a:"짧다",qi:"📏",ai:"✂️"},
+    {q:"안",a:"밖",qi:"🏠",ai:"🌳"},{q:"웃다",a:"울다",qi:"😄",ai:"😭"},
+    {q:"시작",a:"끝",qi:"🚀",ai:"🏁"},
+  ]},
+  3:{label:"3단계",stars:"⭐⭐⭐",time:45,cards:6,target:7,pairs:[
+    {q:"오다",a:"가다",qi:"📥",ai:"📤"},{q:"사다",a:"팔다",qi:"🛒",ai:"💰"},
+    {q:"강하다",a:"약하다",qi:"💪",ai:"🩹"},{q:"좁다",a:"넓다",qi:"🚶",ai:"🌅"},
+    {q:"싸다",a:"비싸다",qi:"🏷️",ai:"💎"},{q:"밝다",a:"어둡다",qi:"🌟",ai:"🌑"},
+    {q:"봄",a:"가을",qi:"🌸",ai:"🍂"},{q:"질문",a:"대답",qi:"❓",ai:"💬"},
+    {q:"가득",a:"비다",qi:"🫙",ai:"⬜"},
+  ]},
+  4:{label:"4단계",stars:"⭐⭐⭐⭐",time:40,cards:6,target:8,pairs:[
+    {q:"복잡하다",a:"단순하다",qi:"🧩",ai:"⚪"},{q:"찬성",a:"반대",qi:"👍",ai:"👎"},
+    {q:"증가",a:"감소",qi:"📈",ai:"📉"},{q:"집중",a:"분산",qi:"🎯",ai:"💥"},
+    {q:"공격",a:"방어",qi:"⚔️",ai:"🛡️"},{q:"미래",a:"과거",qi:"🔮",ai:"📜"},
+    {q:"자유",a:"속박",qi:"🕊️",ai:"⛓️"},{q:"성공",a:"실패",qi:"🏆",ai:"💔"},
+    {q:"연결",a:"단절",qi:"🔗",ai:"✂️"},
+  ]},
+  5:{label:"5단계",stars:"⭐⭐⭐⭐⭐",time:30,cards:8,target:10,pairs:[
+    {q:"겸손",a:"오만",qi:"🙏",ai:"👑"},{q:"절약",a:"낭비",qi:"🐷",ai:"🎰"},
+    {q:"진실",a:"거짓",qi:"✅",ai:"❌"},{q:"희망",a:"절망",qi:"🌈",ai:"⛈️"},
+    {q:"창조",a:"파괴",qi:"🎨",ai:"💣"},{q:"평화",a:"전쟁",qi:"☮️",ai:"⚔️"},
+    {q:"협력",a:"경쟁",qi:"🤝",ai:"🥊"},{q:"허락",a:"거절",qi:"✔️",ai:"🚫"},
+    {q:"이성",a:"감성",qi:"🧠",ai:"❤️"},{q:"구체",a:"추상",qi:"📦",ai:"🌀"},
+    {q:"진보",a:"보수",qi:"🌱",ai:"🏛️"},
+  ]},
+};
+
+let audioCtx = null;
+function getAudio() { if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+
+function beep(freq, dur, type='sine', vol=0.3) {
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = type; osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(); osc.stop(ctx.currentTime + dur);
+  } catch(e){}
+}
+
+function warnBeep() { beep(880, 0.12, 'square', 0.25); }
+function correctSound() { beep(660, 0.08); setTimeout(()=>beep(880, 0.12),80); }
+function wrongSound() { beep(200, 0.18, 'sawtooth', 0.2); }
+function levelUpSound() {
+  [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.15),i*80));
+}
+function gameOverSound() {
+  [400,300,200].forEach((f,i)=>setTimeout(()=>beep(f,0.2,'square',0.2),i*120));
+}
+
+let currentLevel = 1, startLevel = 1;
+let score = 0, streak = 0, timer = 0, interval = null, active = false;
+let currentPair = null, roundsInLevel = 0;
+let warnBeepInterval = null, warnActive = false;
+
+function shuffle(arr){ return [...arr].sort(()=>Math.random()-0.5); }
+
+function renderLvSteps() {
+  const el = document.getElementById('lvSteps');
+  el.innerHTML = '';
+  for(let i=1;i<=5;i++){
+    const d = document.createElement('div');
+    d.className = 'lv-step' + (i < currentLevel ? ' done' : i === currentLevel ? ' current' : ' locked');
+    d.innerHTML = i < currentLevel ? '' : `<span>${i}</span>`;
+    el.appendChild(d);
+  }
+}
+
+function updateLvBadge() {
+  document.getElementById('lvBadge').textContent = LEVELS[currentLevel].label + ' ' + LEVELS[currentLevel].stars;
+}
+
+function getCards(pair, allPairs, count) {
+  const distractors = shuffle(allPairs.filter(p=>p!==pair)).slice(0,count-1).map(p=>({kr:p.a,icon:p.ai,isAnswer:false}));
+  return shuffle([{kr:pair.a,icon:pair.ai,isAnswer:true}, ...distractors]);
+}
+
+function renderCards(cards) {
+  const grid = document.getElementById('cardGrid');
+  const cols = cards.length <= 4 ? 4 : cards.length <= 6 ? 3 : 4;
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  grid.innerHTML = '';
+  cards.forEach((c,i)=>{
+    const d = document.createElement('div');
+    d.className = 'card'; d.id = 'c'+i;
+    d.innerHTML = `<div class="card-dot"></div><div class="card-icon">${c.icon}</div><div class="card-kr">${c.kr}</div>`;
+    d.onclick = ()=>checkCard(i,c.isAnswer);
+    grid.appendChild(d);
+  });
+}
+
+function nextRound() {
+  const lv = LEVELS[currentLevel];
+  currentPair = lv.pairs[Math.floor(Math.random()*lv.pairs.length)];
+  const cards = getCards(currentPair, lv.pairs, lv.cards);
+  const pw = document.getElementById('promptWord');
+  pw.textContent = currentPair.q + '  ' + currentPair.qi;
+  pw.style.animation='none'; void pw.offsetWidth; pw.style.animation='fadeInW 0.3s';
+  document.getElementById('promptHint').textContent = `${roundsInLevel+1}/${lv.target}문제`;
+  renderCards(cards);
+}
+
+function checkCard(i, isAnswer) {
+  if(!active) return;
+  const el = document.getElementById('c'+i);
+  if(isAnswer) {
+    correctSound();
+    score += (1 + streak) * currentLevel;
+    streak++; roundsInLevel++;
+    document.getElementById('scoreDisp').textContent = score;
+    document.getElementById('streakDisp').textContent = streak;
+    el.classList.add('correct');
+    const lv = LEVELS[currentLevel];
+    if(roundsInLevel >= lv.target) {
+      active = false;
+      clearInterval(interval); clearInterval(warnBeepInterval);
+      setTimeout(()=>levelUp(), 420);
+    } else {
+      setTimeout(nextRound, 380);
+    }
+  } else {
+    wrongSound();
+    streak = 0;
+    document.getElementById('streakDisp').textContent = 0;
+    el.classList.add('wrong');
+    setTimeout(()=>el.classList.remove('wrong'),400);
+  }
+}
+
+function levelUp() {
+  levelUpSound();
+  // flash
+  const flash = document.createElement('div'); flash.className='lvup-flash';
+  document.getElementById('root').appendChild(flash);
+  setTimeout(()=>flash.remove(),700);
+
+  if(currentLevel >= 5) { endGame(true); return; }
+  currentLevel++;
+  roundsInLevel = 0;
+  renderLvSteps(); updateLvBadge();
+
+  const lv = LEVELS[currentLevel];
+  timer = lv.time;
+  document.getElementById('timerDisp').textContent = timer;
+  document.getElementById('timerDisp').className = 'timer-num';
+  warnActive = false;
+
+  showLevelUpScreen();
+}
+
+function showLevelUpScreen() {
+  const lv = LEVELS[currentLevel];
+  const ov = document.getElementById('overlay');
+  ov.style.display = 'flex';
+  document.getElementById('overlayInner').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;">
+      <div style="font-size:40px;">🎉</div>
+      <div class="ov-title">${LEVELS[currentLevel-1].label} 클리어!</div>
+      <div class="stars">${LEVELS[currentLevel].stars}</div>
+      <div class="ov-sub"><strong>${lv.label}</strong> 시작!<br>${lv.cards}개 카드 · ${lv.time}초 · ${lv.target}문제</div>
+      <div class="btn-row" style="margin-top:4px;">
+        <button class="btn btn-start" style="font-size:17px;padding:10px 26px;" onclick="resumeGame()">▶ 계속하기!</button>
+        <button class="btn btn-reset" onclick="resetGame()">↺ 처음으로</button>
+      </div>
+    </div>`;
+}
+
+function resumeGame() {
+  document.getElementById('overlay').style.display = 'none';
+  active = true;
+  nextRound();
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(interval); clearInterval(warnBeepInterval);
+  warnActive = false;
+  interval = setInterval(()=>{
+    timer--;
+    const td = document.getElementById('timerDisp');
+    td.textContent = timer;
+    if(timer <= 10 && !warnActive) {
+      warnActive = true;
+      td.className = 'timer-num warn';
+      warnBeepInterval = setInterval(warnBeep, 800);
+    }
+    if(timer <= 0) {
+      clearInterval(interval); clearInterval(warnBeepInterval);
+      active = false;
+      gameOverSound();
+      endGame(false);
+    }
+  },1000);
+}
+
+function startGame() {
+  document.getElementById('overlay').style.display = 'none';
+  clearInterval(interval); clearInterval(warnBeepInterval);
+  score = 0; streak = 0; roundsInLevel = 0;
+  active = true; warnActive = false;
+  timer = LEVELS[currentLevel].time;
+  document.getElementById('scoreDisp').textContent = 0;
+  document.getElementById('streakDisp').textContent = 0;
+  document.getElementById('timerDisp').textContent = timer;
+  document.getElementById('timerDisp').className = 'timer-num';
+  renderLvSteps(); updateLvBadge();
+  nextRound();
+  startTimer();
+}
+
+function endGame(cleared) {
+  gameOverSound();
+  const reachedLv = cleared ? 5 : currentLevel;
+  const stars = score >= 80 ? '⭐⭐⭐' : score >= 40 ? '⭐⭐' : '⭐';
+  const msg = cleared ? '전 단계 클리어! 🏆' : `${LEVELS[currentLevel].label}에서 시간 초과!`;
+  const ov = document.getElementById('overlay');
+  ov.style.display = 'flex';
+  document.getElementById('overlayInner').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:11px;text-align:center;">
+      <div style="font-size:40px;">${cleared?'🏆':'⏰'}</div>
+      <div class="ov-title">게임 종료!</div>
+      <div class="stars">${stars}</div>
+      <div class="ov-score">총 점수: ${score}점</div>
+      <div class="ov-sub">${msg}</div>
+      <div class="btn-row" style="margin-top:4px;">
+        <button class="btn btn-start" style="font-size:16px;padding:9px 22px;" onclick="restartSameLevel()">▶ 다시하기</button>
+        <button class="btn btn-reset" onclick="resetGame()">↺ 처음으로</button>
+      </div>
+    </div>`;
+}
+
+function restartSameLevel() {
+  currentLevel = startLevel;
+  startGame();
+}
+
+function resetGame() {
+  clearInterval(interval); clearInterval(warnBeepInterval);
+  active = false; score = 0; streak = 0; roundsInLevel = 0; warnActive = false;
+  document.getElementById('scoreDisp').textContent = 0;
+  document.getElementById('streakDisp').textContent = 0;
+  document.getElementById('promptWord').textContent = '시작 버튼을 눌러요!';
+  document.getElementById('promptHint').textContent = '';
+  document.getElementById('cardGrid').innerHTML = '';
+  document.getElementById('timerDisp').className = 'timer-num';
+  currentLevel = startLevel;
+  renderLvSteps(); updateLvBadge();
+  showStartScreen();
+}
+
+function showStartScreen() {
+  const ov = document.getElementById('overlay');
+  ov.style.display = 'flex';
+  const lvOptions = [1,2,3,4,5].map(n=>{
+    const lv = LEVELS[n];
+    return `<div class="lv-sel-btn ${n===startLevel?'selected':''}" onclick="selectStartLevel(${n})" id="sel${n}">
+      <div>${lv.label}</div>
+      <div class="lv-stars">${lv.stars}</div>
+      <div class="lv-time">${lv.time}초·${lv.target}문제</div>
+    </div>`;
+  }).join('');
+  document.getElementById('overlayInner').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;width:100%;">
+      <svg width="60" height="60" viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="27,3 51,16 51,42 27,55 3,42 3,16" fill="#69f0ae" stroke="#43a047" stroke-width="2"/>
+        <circle cx="18" cy="20" r="6" fill="#fff" stroke="#43a047" stroke-width="1.5"/>
+        <circle cx="36" cy="20" r="6" fill="#fff" stroke="#43a047" stroke-width="1.5"/>
+        <circle cx="18" cy="21" r="3" fill="#1b5e20"/>
+        <circle cx="36" cy="21" r="3" fill="#1b5e20"/>
+        <path d="M18 34 Q27 42 36 34" stroke="#43a047" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div class="ov-title">시작 단계 선택</div>
+      <div class="ov-sub">제시어의 <strong>반대말</strong> 카드를 눌러요!<br>단계를 완료하면 자동으로 다음 단계로!</div>
+      <div class="lv-select-grid">${lvOptions}</div>
+      <button class="btn btn-start" style="font-size:18px;padding:11px 32px;margin-top:4px;" onclick="startGame()">▶ 게임 시작!</button>
+    </div>`;
+}
+
+function selectStartLevel(n) {
+  startLevel = n; currentLevel = n;
+  [1,2,3,4,5].forEach(i=>{
+    const el = document.getElementById('sel'+i);
+    if(el) el.className = 'lv-sel-btn' + (i===n?' selected':'');
+  });
+  renderLvSteps(); updateLvBadge();
+  document.getElementById('timerDisp').textContent = LEVELS[n].time;
+}
+
+renderLvSteps();
+updateLvBadge();
+showStartScreen();
+</script>
